@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.26;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -107,6 +107,7 @@ contract SyntorStaking is Ownable, ReentrancyGuard {
     event StakingPaused();
     event StakingResumed();
     event EmergencyWithdrawal(address indexed owner, uint256 amount);
+    event FeesUpdated(uint256 newStakingFee, uint256 newUnstakingFee);
 
     // ============ MODIFIERS ============
     
@@ -219,6 +220,7 @@ contract SyntorStaking is Ownable, ReentrancyGuard {
         require(_unstakingFee <= 1000, "Unstaking fee cannot exceed 10%");
         stakingFee = _stakingFee;
         unstakingFee = _unstakingFee;
+        emit FeesUpdated(_stakingFee, _unstakingFee);
     }
 
     /**
@@ -304,16 +306,6 @@ contract SyntorStaking is Ownable, ReentrancyGuard {
         ownerWithdrawals += amount;
         require(token.transfer(owner(), amount), "Emergency transfer failed");
         emit EmergencyWithdrawal(owner(), amount);
-    }
-
-    /**
-     * @dev Emergency withdrawal of all contract funds
-     * @notice Withdraws entire contract balance to owner
-     */
-    function emergencyWithdrawAll() external onlyOwner nonReentrant {
-        uint256 contractBalance = token.balanceOf(address(this));
-        require(token.transfer(owner(), contractBalance), "Emergency transfer failed");
-        emit EmergencyWithdrawal(owner(), contractBalance);
     }
 
     // ============ USER FUNCTIONS ============
